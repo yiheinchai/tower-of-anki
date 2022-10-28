@@ -1,0 +1,22 @@
+{
+    "manifest_version": 3,
+    "name": "AnkiWeb Supercharged",
+    "version": "0.0.1",
+    "description": "Press spacebar to show answer on AnkiWeb",
+    "icons": {
+        "16": "images/anki16.png",
+        "32": "images/anki32.png",
+        "48": "images/anki48.png",
+        "128": "images/anki128.png"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://ankiuser.net/*"
+            ],
+            "js": [
+                "scripts/content.js"
+            ]
+        }
+    ],
+}
