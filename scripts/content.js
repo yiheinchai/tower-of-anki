@@ -1,5 +1,6 @@
+const studyObj = study
 
-function activateFeatures() {
+function activateFeatures(study) {
   document.body.onkeyup = function (e) {
     if (e.key == " " || e.code == "Space" || e.keyCode == 32) {
       if (study.state === "answerShown") {
@@ -25,4 +26,4 @@ function activateFeatures() {
   document.querySelector('#io-overlay').firstChild.setAttribute('style', 'zoom: 1 ;opacity: 1 !important');
 }
 
-setInterval(activateFeatures, 1000)
+setInterval(activateFeatures.bind(_, study), 1000)
