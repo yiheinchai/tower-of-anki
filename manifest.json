@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "AnkiWeb Supercharged",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Press spacebar to show answer on AnkiWeb",
     "icons": {
         "16": "images/anki16.png",
