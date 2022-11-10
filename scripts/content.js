@@ -22,7 +22,7 @@ function activateFeatures() {
     }
   };
   
-  document.querySelector('#io-overlay').firstChild.style.opacity = '1 !important'
+  document.querySelector('#io-overlay').firstChild.setAttribute('style', 'zoom: 1 ;opacity: 1 !important');
 
 }
 const observer = new MutationObserver(activateFeatures);
