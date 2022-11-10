@@ -23,11 +23,6 @@ function activateFeatures() {
   };
   
   document.querySelector('#io-overlay').firstChild.setAttribute('style', 'zoom: 1 ;opacity: 1 !important');
-
 }
-const observer = new MutationObserver(activateFeatures);
-observer.observe(document, {
-  attributes: true,
-  childList: true,
-  subtree: true,
-});
+
+setInterval(activateFeatures, 1000)
