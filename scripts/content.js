@@ -1,6 +1,7 @@
 const studyObj = study
 
 function activateFeatures() {
+  console.log('attemping to activate...')
   try {
     document.querySelector('#io-overlay').firstChild.setAttribute('style', 'zoom: 1 ;opacity: 1 !important');
   } catch {}
@@ -28,4 +29,4 @@ document.body.onkeyup = function (e) {
   }
 };
 
-setInterval(activateFeatures, 1)
+setInterval(activateFeatures, 50)
