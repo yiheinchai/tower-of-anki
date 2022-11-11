@@ -3,6 +3,7 @@ function activateFeatures() {
   try {
     document.querySelector('#io-overlay').firstChild.setAttribute('style', 'zoom: 1 ;opacity: 1 !important');
   } catch {}
+  document.querySelectorAll('img').forEach((ele) => ele.setAttribute('style', ' -webkit-filter: invert(100%); -moz-filter: invert(100%); -o-filter: invert(100%); -ms-filter: invert(100%); '))
 }
 try {
   document.body.onkeyup = function (e) {
@@ -50,5 +51,4 @@ try {
       style.appendChild(document.createTextNode(css));
   }
   head.appendChild(style);
-  document.querySelectorAll('img').forEach((ele) => ele.setAttribute('style', ' -webkit-filter: invert(100%); -moz-filter: invert(100%); -o-filter: invert(100%); -ms-filter: invert(100%); '))
 } catch {}
