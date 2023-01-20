@@ -27,6 +27,7 @@ try {
       }
     }
   };
+  document.querySelector('#qa').querySelectorAll('span').forEach((e => {e.textContent = e.textContent.toLowerCase(); e.textContent = e.textContent.charAt(0).toUpperCase() + e.textContent.slice(1) }))
 } catch {
 }
 
