@@ -11,3 +11,6 @@
 - Higher the level, give players abilities and perks, making it easier to reach even high levels.
 - Give easter eggs and collectibles for reaching specified floors.
 - At base camp, give players the ability to buy supplies to fuel their journey.
+
+## Demo image
+![image](https://user-images.githubusercontent.com/76833604/229145291-8382cd6c-f135-4a04-b9ec-692310073b2b.png)
