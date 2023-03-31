@@ -1,0 +1,22 @@
+{
+  "name": "anki-web-supercharged",
+  "version": "0.0.4",
+  "description": "AnkiWeb support for dark mode and keyboard shortcuts",
+  "main": "content.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yiheinchai/anki-web-supercharged.git"
+  },
+  "author": "Yi Hein Chai",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yiheinchai/anki-web-supercharged/issues"
+  },
+  "homepage": "https://github.com/yiheinchai/anki-web-supercharged#readme",
+  "devDependencies": {
+    "jest": "^29.5.0"
+  }
+}
