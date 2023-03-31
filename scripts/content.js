@@ -165,21 +165,22 @@ function onAnswerUpdateRecord() {
   }
 }
 
-function activateDarkMode() {
-  console.log("attemping to activate...");
+function revertTolightModeForImages() {
   try {
     document
       .querySelector("#io-overlay")
       .firstChild.setAttribute("style", "zoom: 1 ;opacity: 1 !important");
-  } catch {}
-  document
-    .querySelectorAll("img")
-    .forEach((ele) =>
-      ele.setAttribute(
+  } catch (error) {
+    console.error(error);
+  }
+  document.querySelectorAll("img").forEach((img) => {
+    img.onload = () => {
+      img.setAttribute(
         "style",
         " -webkit-filter: invert(100%); -moz-filter: invert(100%); -o-filter: invert(100%); -ms-filter: invert(100%); "
-      )
-    );
+      );
+    };
+  });
 }
 try {
   document.body.onkeyup = function (e) {
