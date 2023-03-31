@@ -165,38 +165,23 @@ function onAnswerUpdateRecord() {
   }
 }
 
-function revertTolightModeForImages() {
-  try {
-    document
-      .querySelector("#io-overlay")
-      .firstChild.setAttribute("style", "zoom: 1 ;opacity: 1 !important");
-  } catch (error) {
-    console.error(error);
-  }
-  document.querySelectorAll("img").forEach((img) => {
-    img.onload = () => {
-      img.setAttribute(
-        "style",
-        " -webkit-filter: invert(100%); -moz-filter: invert(100%); -o-filter: invert(100%); -ms-filter: invert(100%); "
-      );
-    };
-  });
-}
-
 // Select the node that will be observed for mutations
 const targetNode = document.querySelector("#easebuts");
 // Options for the observer (which mutations to observe)
-const config = { attributes: true, childList: true, subtree: true };
+const config = { attributes: true, childList: false, subtree: false };
 // Callback function to execute when mutations are observed
 const callback = (mutationList, observer) => {
   if (
+    mutationList &&
+    Array.from(mutationList).some(
+      (mutation) => mutation.type === "attributes"
+    ) &&
     !Array.from(document.querySelector("#easebuts").classList).includes(
       "invisible"
     )
   ) {
     onAnswerUpdateRecord();
   }
-  revertTolightModeForImages();
 };
 
 // Create an observer instance linked to the callback function
@@ -235,6 +220,23 @@ function activateDarkMode() {
   }
 }
 
+function revertTolightModeForImages() {
+  try {
+    document
+      .querySelector("#io-overlay")
+      .firstChild.setAttribute("style", "zoom: 1 ;opacity: 1 !important");
+  } catch {}
+  document
+    .querySelectorAll("img")
+    .forEach((ele) =>
+      ele.setAttribute(
+        "style",
+        " -webkit-filter: invert(100%); -moz-filter: invert(100%); -o-filter: invert(100%); -ms-filter: invert(100%); "
+      )
+    );
+}
+
+setInterval(revertTolightModeForImages, 10);
 activateDarkMode();
 
 // module.exports = {
