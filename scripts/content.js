@@ -14,13 +14,24 @@ function generateArrayofXElements(x) {
   );
 }
 
-function LevelComponent(level, currentReps, totalReps) {
+
+function FloorComponent(
+  floor,
+  currentStepInFloor,
+  totalStepsForFloor,
+  level,
+  currentXpInLevel,
+  totalXpInLevel
+) {
   return `
-<div style="height: 3rem;" class="level_wrapper">
- <div>Lvl ${level}</div>
- <div style="display: grid;grid-template-columns: repeat(${totalReps}, 1fr); grid-template-rows: 1fr;height: 1rem;">
-    ${generateArrayofXElements(totalReps).reduce((acc, ele, index) => {
-      if (index <= currentReps) {
+<div style="display:flex;flex-direction: row;justify-content: center;align-items: center;gap: 1rem;" class="floor_wrapper">
+  <div style="white-space: nowrap;">Lvl ${level} (${Math.floor(
+    levelPercentageCompletion * 100
+  )}%)</div>
+  <div style="white-space: nowrap;">Floor ${floor}</div>
+  <div style="display: grid;grid-template-columns: repeat(${totalStepsForFloor}, 1fr);grid-template-rows: 1fr;height: 1rem; width: 100%;">
+    ${generateArrayofXElements(totalStepsForFloor).reduce((acc, ele, index) => {
+      if (index <= currentStepInFloor) {
         return (
           acc +
           `<div style="border: 1px solid black; background-color: green;"></div>`
@@ -28,7 +39,9 @@ function LevelComponent(level, currentReps, totalReps) {
       } else {
         return acc + `<div style = "border: 1px solid black;"></div>`;
       }
-    }, ``)}</div></div>
+    }, ``)}
+  </div>
+</div>
 `;
 }
 
