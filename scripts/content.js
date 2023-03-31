@@ -50,17 +50,18 @@ function FloorComponent(
 `;
 }
 
-// A function that calculates the level, current xp and next xp given total xp
-// A function that takes an integer of experience and returns the level and the experience to the next level
-function calculateLevel(exp) {
-  // Assume that the level formula is: level = Math.floor(Math.sqrt(exp))
-  // And the experience to the next level formula is: nextExp = (level + 1) * (level + 1) - exp
-  let level = Math.floor(Math.sqrt(exp)); // Calculate the level from the experience
-  let cumulativeExpAtNextLevel = (level + 1) * (level + 1); // Calculate the total experience required for the next level
-  let cumulativeExpAtCurrentLevel = level * level; // Calculate the total experience required for the current level
-  let playerExpAtCurrentLevel = exp - cumulativeExpAtCurrentLevel; // Calculate the experience required for the current level
-  let expToNextLevel = cumulativeExpAtNextLevel - cumulativeExpAtCurrentLevel; // Calculate the experience required for the next level
-  return [level, playerExpAtCurrentLevel, expToNextLevel]; // Return an array with the level and the experience to the next level
+// A function that calculates the floor, current steps and next steps given total steps
+// A function that takes an integer of the steps and returns the floor and the the steps to the next floor
+function calculateFloor(steps) {
+  // Assume that the floor formula is: floor = Math.floor(Math.sqrt(steps))
+  // And the the steps to the next floor formula is: nextStep = (floor + 1) * (floor + 1) - steps
+  let floor = Math.floor(Math.sqrt(steps)); // Calculate the floor from the the steps
+  let cumulativeStepsAtNextFloor = (floor + 1) * (floor + 1); // Calculate the total the steps required for the next floor
+  let cumulativeStepsAtCurrentFloor = floor * floor; // Calculate the total the steps required for the current floor
+  let playerStepsAtCurrentFloor = steps - cumulativeStepsAtCurrentFloor; // Calculate the the steps required for the current floor
+  let expToNextFloor =
+    cumulativeStepsAtNextFloor - cumulativeStepsAtCurrentFloor; // Calculate the the steps required for the next floor
+  return [floor, playerStepsAtCurrentFloor, expToNextFloor]; // Return an array with the floor and the the steps to the next floor
 }
 
 function updateLevelDisplay() {
