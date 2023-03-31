@@ -64,8 +64,61 @@ function calculateFloor(steps) {
   return [floor, playerStepsAtCurrentFloor, expToNextFloor]; // Return an array with the floor and the the steps to the next floor
 }
 
-function updateLevelDisplay() {
-  level_record = JSON.parse(window.localStorage.getItem("level_record"));
+const XP_MULTIPLIERS = [
+  { threshold: 1600, multiplier: 4 },
+  { threshold: 800, multiplier: 2.5 },
+  { threshold: 300, multiplier: 1.75 },
+  { threshold: 100, multiplier: 1.25 },
+  { threshold: 0, multiplier: 1 },
+];
+
+// A function that takes the number of steps as a parameter and returns the Xp
+function calculateXpFromSingleDay(steps) {
+  const multiplierWithStepsAboveThresholds = XP_MULTIPLIERS.map(
+    (multiplier) => {
+      const stepsAboveThreshold =
+        steps - multiplier.threshold >= 0 ? steps - multiplier.threshold : 0;
+      return { ...multiplier, stepsAboveThreshold };
+    }
+  );
+  // { threshold: 1600, multiplier: 4 }, ABOVE THRESHOLD: 0
+  // { threshold: 800, multiplier: 2.5 }, ABOVE THRESHOLD: 200
+  // { threshold: 300, multiplier: 1.75 }, ABOVE THRESHOLD: 700
+  // { threshold: 100, multiplier: 1.25 }, ABOVE THRESHOLD: 900
+  // { threshold: 0, multiplier: 1}, ABOVE THRESHOLD: 1000
+  let previousAboveThreshold = 0;
+  const totalXp = multiplierWithStepsAboveThresholds.reduce(
+    (acc, multiplier) => {
+      const xpForMultiplier =
+        (multiplier.stepsAboveThreshold - previousAboveThreshold) *
+        multiplier.multiplier;
+
+      previousAboveThreshold = multiplier.stepsAboveThreshold;
+      return acc + xpForMultiplier;
+    },
+    0
+  );
+
+  return Math.floor(totalXp);
+}
+
+// The Xp is caculated based on how many steps the player has accumulated, the more steps within a single day, the more Xp the player will gain
+function calculateTotalXp(steps_record) {
+  let totalXp = Object.values(steps_record).reduce((totalXp, stepsFromADay) => {
+    const xp = calculateXpFromSingleDay(stepsFromADay);
+    return totalXp + xp;
+  }, 0);
+  return totalXp;
+}
+
+// The level is calculated based on how much Xp the player has accumulated
+// The level is calculated based on the formula: level = Math.floor(Math.sqrt(totalXp) / 3)
+function calculateLevel(totalXp) {
+  const rawLevel = Math.sqrt(totalXp) / 3;
+  const level = Math.floor(Math.sqrt(totalXp) / 3); // Calculate the level from the the steps
+  const levelPercentageCompletion = rawLevel - level;
+  return [level, levelPercentageCompletion]; // Return an array with the level and the the steps to the next level
+}
   const todayDate = formatDate(new Date());
   if (level_record === null || level_record[todayDate] === undefined) {
     [level, currentReps, totalReps] = calculateLevel(0);
