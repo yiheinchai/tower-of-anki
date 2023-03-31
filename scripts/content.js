@@ -182,19 +182,28 @@ function revertTolightModeForImages() {
     };
   });
 }
-try {
-  document.body.onkeyup = function (e) {
-    if (
-      Array.from(document.querySelector("#easebuts").classList).includes(
-        "invisible"
-      )
-    ) {
-      onAnswerUpdateRecord();
-    }
-  };
-} catch {}
 
-setInterval(activateDarkMode, 10);
+// Select the node that will be observed for mutations
+const targetNode = document.querySelector("#easebuts");
+// Options for the observer (which mutations to observe)
+const config = { attributes: true, childList: true, subtree: true };
+// Callback function to execute when mutations are observed
+const callback = (mutationList, observer) => {
+  if (
+    !Array.from(document.querySelector("#easebuts").classList).includes(
+      "invisible"
+    )
+  ) {
+    onAnswerUpdateRecord();
+  }
+  revertTolightModeForImages();
+};
+
+// Create an observer instance linked to the callback function
+const observer = new MutationObserver(callback);
+
+// Start observing the target node for configured mutations
+observer.observe(targetNode, config);
 
 try {
   const css =
