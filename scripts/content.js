@@ -205,28 +205,40 @@ const observer = new MutationObserver(callback);
 // Start observing the target node for configured mutations
 observer.observe(targetNode, config);
 
-try {
-  const css =
-    "html {-webkit-filter: invert(100%);" +
-    "-moz-filter: invert(100%);" +
-    "-o-filter: invert(100%);" +
-    "-ms-filter: invert(100%); }";
-  const head = document.getElementsByTagName("head")[0];
-  const style = document.createElement("style");
-  if (!window.counter) {
-    window.counter = 1;
-  } else {
-    window.counter++;
-    if (window.counter % 2 == 0) {
-      const css =
-        "html {-webkit-filter: invert(0%); -moz-filter: invert(0%); -o-filter: invert(0%); -ms-filter: invert(0%); }";
+function activateDarkMode() {
+  try {
+    const css =
+      "html {-webkit-filter: invert(100%);" +
+      "-moz-filter: invert(100%);" +
+      "-o-filter: invert(100%);" +
+      "-ms-filter: invert(100%); }";
+    const head = document.getElementsByTagName("head")[0];
+    const style = document.createElement("style");
+    if (!window.counter) {
+      window.counter = 1;
+    } else {
+      window.counter++;
+      if (window.counter % 2 == 0) {
+        const css =
+          "html {-webkit-filter: invert(0%); -moz-filter: invert(0%); -o-filter: invert(0%); -ms-filter: invert(0%); }";
+      }
     }
+    style.type = "text/css";
+    if (style.styleSheet) {
+      style.styleSheet.cssText = css;
+    } else {
+      style.appendChild(document.createTextNode(css));
+    }
+    head.appendChild(style);
+  } catch (error) {
+    console.error(error);
   }
-  style.type = "text/css";
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
-  } else {
-    style.appendChild(document.createTextNode(css));
-  }
-  head.appendChild(style);
-} catch {}
+}
+
+activateDarkMode();
+
+// module.exports = {
+//   calculateXpFromSingleDay,
+//   calculateTotalXp,
+//   calculateLevel,
+// };
