@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "AnkiWeb Supercharged",
-  "version": "0.0.4",
-  "description": "AnkiWeb support for dark mode and keyboard shortcuts",
+  "name": "Tower of Anki",
+  "version": "0.0.5",
+  "description": "AnkiWeb with a tower climbing and levelling game",
   "icons": {
     "16": "images/anki16.png",
     "32": "images/anki32.png",
