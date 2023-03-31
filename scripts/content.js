@@ -119,38 +119,49 @@ function calculateLevel(totalXp) {
   const levelPercentageCompletion = rawLevel - level;
   return [level, levelPercentageCompletion]; // Return an array with the level and the the steps to the next level
 }
+
+function updateFloorDisplay() {
+  steps_record = JSON.parse(window.localStorage.getItem("steps_record"));
   const todayDate = formatDate(new Date());
-  if (level_record === null || level_record[todayDate] === undefined) {
-    [level, currentReps, totalReps] = calculateLevel(0);
-    document.querySelector(".pt-1").innerHTML = LevelComponent(
-      level,
-      currentRep,
-      totalReps
-    );
-  } else {
-    const totalXp = level_record[todayDate];
-    [level, currentRep, totalReps] = calculateLevel(totalXp);
-    document.querySelector(".pt-1").innerHTML = LevelComponent(
-      level,
-      currentRep,
-      totalReps
-    );
-  }
+  if (steps_record === null || steps_record[todayDate] === undefined) return;
+
+  const todaySteps = steps_record[todayDate];
+  [floor, currentStepInFloor, totalStepsInFloor] = calculateFloor(todaySteps);
+
+  const totalXp = calculateTotalXp(steps_record);
+  [level, levelPercentageCompletion] = calculateLevel(totalXp);
+
+  document.querySelector(".pt-1").innerHTML = FloorComponent(
+    floor,
+    currentStepInFloor,
+    totalStepsInFloor,
+    level,
+    levelPercentageCompletion
+  );
 }
 
 function onAnswerUpdateRecord() {
-  level_record = JSON.parse(window.localStorage.getItem("level_record"));
+  steps_record = JSON.parse(window.localStorage.getItem("steps_record"));
   const todayDate = formatDate(new Date());
-  if (level_record === null || level_record[todayDate] === undefined) {
+
+  if (steps_record === null) {
     window.localStorage.setItem(
-      "level_record",
+      "steps_record",
       JSON.stringify({ [todayDate]: 0 })
     );
+  }
+
+  if (steps_record[todayDate] === undefined) {
+    window.localStorage.setItem(
+      "steps_record",
+      JSON.stringify({ ...steps_record, [todayDate]: 0 })
+    );
+    updateFloorDisplay();
   } else {
-    currentCount = level_record[todayDate];
-    level_record[todayDate] = currentCount + 1;
-    window.localStorage.setItem("level_record", JSON.stringify(level_record));
-    updateLevelDisplay();
+    currentCount = steps_record[todayDate];
+    steps_record[todayDate] = currentCount + 1;
+    window.localStorage.setItem("steps_record", JSON.stringify(steps_record));
+    updateFloorDisplay();
   }
 }
 
