@@ -14,6 +14,11 @@ function generateArrayofXElements(x) {
   );
 }
 
+// Game explanation:
+// Everyday, players will be able to climb the tower to reach higher floors.
+// Each floor has a number of steps. Each step has a question. And as the player climbs the tower, the number of steps in each floor will increase.
+// The player will be able to climb the tower by answering questions.
+// The higher the floor, the more the steps the player will gain.
 
 function FloorComponent(
   floor,
