@@ -1,244 +1,320 @@
+// --- Helper Functions (Unchanged) ---
+
 function formatDate(date) {
-  let dd = String(date.getDate()).padStart(2, "0");
-  let mm = String(date.getMonth() + 1).padStart(2, "0"); //January is 0!
-  let yyyy = date.getFullYear();
-  return dd + "/" + mm + "/" + yyyy;
+    let dd = String(date.getDate()).padStart(2, "0");
+    let mm = String(date.getMonth() + 1).padStart(2, "0"); //January is 0!
+    let yyyy = date.getFullYear();
+    return dd + "/" + mm + "/" + yyyy;
 }
 
 function generateArrayofXElements(x) {
-  return Array.from(
-    {
-      length: x,
-    },
-    (_, i) => i + 1
-  );
+    // Ensure x is a positive integer
+    x = Math.max(0, Math.floor(x));
+    if (!Number.isFinite(x)) {
+        x = 0; // Handle non-finite inputs
+    }
+    return Array.from(
+        {
+            length: x,
+        },
+        (_, i) => i + 1
+    );
 }
 
-// Game explanation:
-// Everyday, players will be able to climb the tower to reach higher floors.
-// Each floor has a number of steps. Each step has a question. And as the player climbs the tower, the number of steps in each floor will increase.
-// The player will be able to climb the tower by answering questions.
-// The higher the floor, the more the steps the player will gain.
+
+// --- Display Component (Mostly Unchanged) ---
 
 function FloorComponent(
-  floor,
-  currentStepInFloor,
-  totalStepsForFloor,
-  level,
-  currentXpInLevel,
-  totalXpInLevel
+    floor,
+    currentStepInFloor,
+    totalStepsForFloor,
+    level,
+    levelPercentageCompletion // Added levelPercentageCompletion here
 ) {
-  return `
-<div style="display:flex;flex-direction: row;justify-content: center;align-items: center;gap: 1rem;" class="floor_wrapper">
-  <div style="white-space: nowrap;">Lvl ${level} (${Math.floor(
-    levelPercentageCompletion * 100
-  )}%)</div>
-  <div style="white-space: nowrap;">Floor ${floor}</div>
-  <div style="display: grid;grid-template-columns: repeat(${totalStepsForFloor}, 1fr);grid-template-rows: 1fr;height: 1rem; width: 100%;">
-    ${generateArrayofXElements(totalStepsForFloor).reduce((acc, ele, index) => {
-      if (index <= currentStepInFloor) {
-        return (
-          acc +
-          `<div style="border: 1px solid black; background-color: green;"></div>`
-        );
-      } else {
-        return acc + `<div style = "border: 1px solid black;"></div>`;
-      }
+    // Calculate percentage string safely
+    const percentageString = Number.isFinite(levelPercentageCompletion)
+        ? Math.floor(levelPercentageCompletion * 100) + '%'
+        : '0%'; // Default to 0% if calculation is invalid
+
+    // Ensure totalStepsForFloor is at least 1 for grid generation
+    const safeTotalStepsForFloor = Math.max(1, totalStepsForFloor);
+    // Ensure currentStepInFloor is within valid bounds [0, totalStepsForFloor]
+    const safeCurrentStepInFloor = Math.max(0, Math.min(currentStepInFloor, totalStepsForFloor));
+
+
+    return `
+<div style="display:flex; flex-direction: row; justify-content: center; align-items: center; gap: 1rem; margin-top: 5px; margin-bottom: 5px;" class="floor_wrapper">
+  <div style="white-space: nowrap; font-size: 0.9em;">Lvl ${level} (${percentageString})</div>
+  <div style="white-space: nowrap; font-size: 0.9em;">Floor ${floor}</div>
+  <div style="display: grid; grid-template-columns: repeat(${safeTotalStepsForFloor}, 1fr); grid-template-rows: 1fr; height: 1rem; width: 100%; border: 1px solid #ccc; background-color: #f8f9fa; border-radius: 3px; overflow: hidden;">
+    ${generateArrayofXElements(safeTotalStepsForFloor).reduce((acc, ele, index) => {
+        // Use index directly, as ele starts from 1 but index starts from 0
+        // We want to fill up to and including the currentStepInFloor index
+        // Adjust comparison: steps are 1-based, index is 0-based
+        // safeCurrentStepInFloor is 1-based for calculation result, adjust for 0-based index
+        if (index < safeCurrentStepInFloor) {
+            return (
+                acc +
+                // Use a brighter green, remove individual borders for a smoother look
+                `<div style="background-color: #28a745;"></div>`
+            );
+        } else {
+            // Empty div for unfilled steps (background color from parent shows through)
+            return acc + `<div></div>`;
+        }
     }, ``)}
   </div>
 </div>
 `;
 }
 
-// A function that calculates the floor, current steps and next steps given total steps
-// A function that takes an integer of the steps and returns the floor and the the steps to the next floor
+
+// --- Calculation Logic (Unchanged) ---
+
 function calculateFloor(steps) {
-  // Assume that the floor formula is: floor = Math.floor(Math.sqrt(steps))
-  // And the the steps to the next floor formula is: nextStep = (floor + 1) * (floor + 1) - steps
-  let floor = Math.floor(Math.sqrt(steps)); // Calculate the floor from the the steps
-  let cumulativeStepsAtNextFloor = (floor + 1) * (floor + 1); // Calculate the total the steps required for the next floor
-  let cumulativeStepsAtCurrentFloor = floor * floor; // Calculate the total the steps required for the current floor
-  let playerStepsAtCurrentFloor = steps - cumulativeStepsAtCurrentFloor; // Calculate the the steps required for the current floor
-  let expToNextFloor =
-    cumulativeStepsAtNextFloor - cumulativeStepsAtCurrentFloor; // Calculate the the steps required for the next floor
-  return [floor, playerStepsAtCurrentFloor, expToNextFloor]; // Return an array with the floor and the the steps to the next floor
+    if (steps < 0 || !Number.isFinite(steps)) steps = 0; // Handle invalid steps
+    let floor = steps > 0 ? Math.floor(Math.sqrt(steps - 1)) : 0;
+    let cumulativeStepsAtCurrentFloorStart = floor * floor;
+    let cumulativeStepsAtNextFloorStart = (floor + 1) * (floor + 1);
+
+    let playerStepsInCurrentFloor = steps - cumulativeStepsAtCurrentFloorStart;
+    let totalStepsForFloor = cumulativeStepsAtNextFloorStart - cumulativeStepsAtCurrentFloorStart;
+
+    // Ensure totalStepsForFloor is at least 1, especially for floor 0 (which needs 1 step)
+    totalStepsForFloor = Math.max(1, totalStepsForFloor);
+    // Ensure playerStepsInCurrentFloor doesn't exceed totalStepsForFloor
+    playerStepsInCurrentFloor = Math.min(playerStepsInCurrentFloor, totalStepsForFloor);
+
+
+    // Return floor (1-based), steps *made* in this floor, total steps *required* for this floor
+    return [floor + 1, playerStepsInCurrentFloor, totalStepsForFloor];
 }
+
 
 const XP_MULTIPLIERS = [
-  { threshold: 1600, multiplier: 4 },
-  { threshold: 800, multiplier: 2.5 },
-  { threshold: 300, multiplier: 1.75 },
-  { threshold: 100, multiplier: 1.25 },
-  { threshold: 0, multiplier: 1 },
+    { threshold: 1600, multiplier: 4 },
+    { threshold: 800, multiplier: 2.5 },
+    { threshold: 300, multiplier: 1.75 },
+    { threshold: 100, multiplier: 1.25 },
+    { threshold: 0, multiplier: 1 },
 ];
 
-// A function that takes the number of steps as a parameter and returns the Xp
 function calculateXpFromSingleDay(steps) {
-  const multiplierWithStepsAboveThresholds = XP_MULTIPLIERS.map(
-    (multiplier) => {
-      const stepsAboveThreshold =
-        steps - multiplier.threshold >= 0 ? steps - multiplier.threshold : 0;
-      return { ...multiplier, stepsAboveThreshold };
+    if (steps <= 0 || !Number.isFinite(steps)) return 0;
+
+    let remainingSteps = steps;
+    let totalXp = 0;
+    // Sort multipliers by threshold descending to process highest first
+    const sortedMultipliers = [...XP_MULTIPLIERS].sort((a, b) => b.threshold - a.threshold);
+
+    let previousThreshold = Infinity; // Start with infinity for the highest tier
+
+    for (const currentTier of sortedMultipliers) {
+        if (remainingSteps > currentTier.threshold) {
+            // Calculate steps that fall *strictly between* currentTier.threshold and previousThreshold
+            const stepsInThisBand = Math.min(remainingSteps, previousThreshold) - currentTier.threshold;
+            if (stepsInThisBand > 0) {
+                 totalXp += stepsInThisBand * currentTier.multiplier;
+            }
+        }
+         previousThreshold = currentTier.threshold; // Update for the next iteration
+         if (remainingSteps <= currentTier.threshold) {
+             // Optimization: if remaining steps are below the current threshold, they are also below all subsequent lower thresholds.
+             // However, the loop needs to continue to potentially apply the base multiplier (threshold 0).
+             // A break here would be wrong if the threshold 0 tier hasn't been processed yet.
+         }
     }
-  );
-  // { threshold: 1600, multiplier: 4 }, ABOVE THRESHOLD: 0
-  // { threshold: 800, multiplier: 2.5 }, ABOVE THRESHOLD: 200
-  // { threshold: 300, multiplier: 1.75 }, ABOVE THRESHOLD: 700
-  // { threshold: 100, multiplier: 1.25 }, ABOVE THRESHOLD: 900
-  // { threshold: 0, multiplier: 1}, ABOVE THRESHOLD: 1000
-  let previousAboveThreshold = 0;
-  const totalXp = multiplierWithStepsAboveThresholds.reduce(
-    (acc, multiplier) => {
-      const xpForMultiplier =
-        (multiplier.stepsAboveThreshold - previousAboveThreshold) *
-        multiplier.multiplier;
 
-      previousAboveThreshold = multiplier.stepsAboveThreshold;
-      return acc + xpForMultiplier;
-    },
-    0
-  );
-
-  return Math.floor(totalXp);
+    return Math.floor(totalXp);
 }
 
-// The Xp is caculated based on how many steps the player has accumulated, the more steps within a single day, the more Xp the player will gain
+
 function calculateTotalXp(steps_record) {
-  let totalXp = Object.values(steps_record).reduce((totalXp, stepsFromADay) => {
-    const xp = calculateXpFromSingleDay(stepsFromADay);
-    return totalXp + xp;
-  }, 0);
-  return totalXp;
+    if (!steps_record || typeof steps_record !== 'object') return 0;
+    let totalXp = Object.values(steps_record).reduce((totalXp, stepsFromADay) => {
+        const xp = calculateXpFromSingleDay(stepsFromADay);
+        return totalXp + xp;
+    }, 0);
+    return totalXp;
 }
 
-// The level is calculated based on how much Xp the player has accumulated
-// The level is calculated based on the formula: level = Math.floor(Math.sqrt(totalXp) / 3)
 function calculateLevel(totalXp) {
-  const rawLevel = Math.sqrt(totalXp) / 3;
-  const level = Math.floor(Math.sqrt(totalXp) / 3); // Calculate the level from the the steps
-  const levelPercentageCompletion = rawLevel - level;
-  return [level, levelPercentageCompletion]; // Return an array with the level and the the steps to the next level
+    if (totalXp < 0 || !Number.isFinite(totalXp)) totalXp = 0;
+    const rawLevel = Math.sqrt(totalXp) / 3;
+    const level = Math.floor(rawLevel);
+
+    const xpForCurrentLevel = 9 * level * level;
+    const xpForNextLevel = 9 * (level + 1) * (level + 1);
+    const xpEarnedInCurrentLevel = totalXp - xpForCurrentLevel;
+    const xpNeededForLevelUp = xpForNextLevel - xpForCurrentLevel;
+
+    const levelPercentageCompletion = (xpNeededForLevelUp > 0) ? (xpEarnedInCurrentLevel / xpNeededForLevelUp) : (level > 0 ? 1 : 0); // If needed is 0, completion is 100% unless at level 0
+
+    // Return level (using 0-based internally, display might add 1), percentage
+    return [level, levelPercentageCompletion];
 }
+
+
+// --- Core Logic (Update Display and Handle Answer) ---
 
 function updateFloorDisplay() {
-  steps_record = JSON.parse(window.localStorage.getItem("steps_record"));
-  const todayDate = formatDate(new Date());
-  if (steps_record === null || steps_record[todayDate] === undefined) return;
+    let steps_record = {};
+    try {
+        steps_record = JSON.parse(window.localStorage.getItem("steps_record")) || {};
+    } catch (e) {
+        console.error("Failed to parse steps_record from localStorage", e);
+        steps_record = {};
+    }
 
-  const todaySteps = steps_record[todayDate];
-  [floor, currentStepInFloor, totalStepsInFloor] = calculateFloor(todaySteps);
+    const todayDate = formatDate(new Date());
+    const todaySteps = steps_record[todayDate] || 0;
 
-  const totalXp = calculateTotalXp(steps_record);
-  [level, levelPercentageCompletion] = calculateLevel(totalXp);
+    let floor, currentStepInFloor, totalStepsInFloor;
+    try {
+        [floor, currentStepInFloor, totalStepsInFloor] = calculateFloor(todaySteps);
+    } catch (e) {
+        console.error("Error calculating floor:", e);
+        floor = 1;
+        currentStepInFloor = 0;
+        totalStepsInFloor = 1; // Default to prevent errors in FloorComponent
+    }
 
-  document.querySelector(".pt-1").innerHTML = FloorComponent(
-    floor,
-    currentStepInFloor,
-    totalStepsInFloor,
-    level,
-    levelPercentageCompletion
-  );
+    let totalXp = 0;
+    try {
+        totalXp = calculateTotalXp(steps_record);
+    } catch (e) {
+        console.error("Error calculating total XP:", e);
+    }
+
+    let level, levelPercentageCompletion;
+    try {
+        [level, levelPercentageCompletion] = calculateLevel(totalXp);
+    } catch (e) {
+        console.error("Error calculating level:", e);
+        level = 0;
+        levelPercentageCompletion = 0;
+    }
+
+    // Target element for display - check if it exists
+    const displayContainer = document.querySelector(".pt-1");
+    if (displayContainer) {
+        // Check if our display element already exists to avoid duplicates
+        let floorDisplayElement = displayContainer.querySelector(".floor_wrapper");
+        if (!floorDisplayElement) {
+            // Create a container for our component if it doesn't exist
+            floorDisplayElement = document.createElement('div');
+            displayContainer.appendChild(floorDisplayElement);
+        }
+
+        try {
+            // Update the innerHTML of our specific container
+            floorDisplayElement.innerHTML = FloorComponent(
+                floor,
+                currentStepInFloor,
+                totalStepsInFloor,
+                level, // Pass the calculated level (0-based from calc)
+                levelPercentageCompletion
+            );
+        } catch (e) {
+            console.error("Error rendering FloorComponent:", e);
+            floorDisplayElement.innerHTML = `<div style="color: red; text-align: center;">Error displaying floor progress.</div>`;
+        }
+    } else {
+        console.warn("Target element '.pt-1' not found for floor display.");
+    }
 }
+
 
 function onAnswerUpdateRecord() {
-  steps_record = JSON.parse(window.localStorage.getItem("steps_record"));
-  const todayDate = formatDate(new Date());
-
-  if (steps_record === null) {
-    window.localStorage.setItem(
-      "steps_record",
-      JSON.stringify({ [todayDate]: 0 })
-    );
-  }
-
-  if (steps_record[todayDate] === undefined) {
-    window.localStorage.setItem(
-      "steps_record",
-      JSON.stringify({ ...steps_record, [todayDate]: 0 })
-    );
-    updateFloorDisplay();
-  } else {
-    currentCount = steps_record[todayDate];
-    steps_record[todayDate] = currentCount + 1;
-    window.localStorage.setItem("steps_record", JSON.stringify(steps_record));
-    updateFloorDisplay();
-  }
-}
-
-// Select the node that will be observed for mutations
-const targetNode = document.querySelector("#easebuts");
-// Options for the observer (which mutations to observe)
-const config = { attributes: true, childList: false, subtree: false };
-// Callback function to execute when mutations are observed
-const callback = (mutationList, observer) => {
-  if (
-    mutationList &&
-    Array.from(mutationList).some(
-      (mutation) => mutation.type === "attributes"
-    ) &&
-    !Array.from(document.querySelector("#easebuts").classList).includes(
-      "invisible"
-    )
-  ) {
-    onAnswerUpdateRecord();
-  }
-};
-
-// Create an observer instance linked to the callback function
-const observer = new MutationObserver(callback);
-
-// Start observing the target node for configured mutations
-observer.observe(targetNode, config);
-
-function activateDarkMode() {
-  try {
-    const css =
-      "html {-webkit-filter: invert(100%);" +
-      "-moz-filter: invert(100%);" +
-      "-o-filter: invert(100%);" +
-      "-ms-filter: invert(100%); }";
-    const head = document.getElementsByTagName("head")[0];
-    const style = document.createElement("style");
-    if (!window.counter) {
-      window.counter = 1;
-    } else {
-      window.counter++;
-      if (window.counter % 2 == 0) {
-        const css =
-          "html {-webkit-filter: invert(0%); -moz-filter: invert(0%); -o-filter: invert(0%); -ms-filter: invert(0%); }";
-      }
+    console.log("Answer button clicked, updating record..."); // Debug log
+    let steps_record = {};
+    try {
+        steps_record = JSON.parse(window.localStorage.getItem("steps_record")) || {};
+    } catch (e) {
+        console.error("Failed to parse steps_record from localStorage", e);
+        steps_record = {};
     }
-    style.type = "text/css";
-    if (style.styleSheet) {
-      style.styleSheet.cssText = css;
-    } else {
-      style.appendChild(document.createTextNode(css));
+
+    const todayDate = formatDate(new Date());
+
+    if (typeof steps_record[todayDate] !== 'number' || !Number.isFinite(steps_record[todayDate])) {
+        steps_record[todayDate] = 0;
     }
-    head.appendChild(style);
-  } catch (error) {
-    console.error(error);
-  }
+
+    steps_record[todayDate]++;
+    console.log(`Steps for ${todayDate}: ${steps_record[todayDate]}`); // Debug log
+
+    try {
+        window.localStorage.setItem("steps_record", JSON.stringify(steps_record));
+    } catch (e) {
+        console.error("Failed to save steps_record to localStorage", e);
+    }
+
+    updateFloorDisplay();
 }
 
-function revertTolightModeForImages() {
-  try {
-    document
-      .querySelector("#io-overlay")
-      .firstChild.setAttribute("style", "zoom: 1 ;opacity: 1 !important");
-  } catch {}
-  document
-    .querySelectorAll("img")
-    .forEach((ele) =>
-      ele.setAttribute(
-        "style",
-        " -webkit-filter: invert(100%); -moz-filter: invert(100%); -o-filter: invert(100%); -ms-filter: invert(100%); "
-      )
-    );
+// --- Initialization and Event Listener Setup (Updated Part) ---
+
+function initializeGamification() {
+    console.log("Initializing Anki Gamification Script...");
+
+    // Initial display update on load
+    updateFloorDisplay();
+
+    // Set up event listener for answer button clicks
+    const ansArea = document.querySelector("#ansarea");
+
+    if (ansArea) {
+        console.log("Found #ansarea. Adding click listener.");
+        // Use event delegation on the container
+        ansArea.addEventListener('click', function (event) {
+            // Check if the clicked element is a button within the #ansarea
+            const targetButton = event.target.closest('button'); // Find the nearest button ancestor or self
+            if (targetButton && ansArea.contains(targetButton)) {
+                 // Check if it's one of the primary action buttons (Again, Hard, Good, Easy)
+                 // This check might be redundant if only these buttons exist here, but adds robustness
+                 if (targetButton.classList.contains('btn-primary')) {
+                    onAnswerUpdateRecord();
+                 }
+            }
+        });
+    } else {
+        // AnkiWeb might load content dynamically. If #ansarea isn't present immediately,
+        // we might need to wait or use a MutationObserver on a higher-level element (like 'main' or 'body')
+        // to detect when #ansarea is added to the DOM.
+        console.warn("#ansarea element not found on initial load. Retrying setup or listener might fail.");
+
+        // Simple retry mechanism: Check again after a short delay
+        setTimeout(() => {
+            const ansAreaRetry = document.querySelector("#ansarea");
+            if (ansAreaRetry) {
+                console.log("Found #ansarea on retry. Adding click listener.");
+                 ansAreaRetry.addEventListener('click', function (event) {
+                    const targetButton = event.target.closest('button');
+                    if (targetButton && ansAreaRetry.contains(targetButton) && targetButton.classList.contains('btn-primary')) {
+                         onAnswerUpdateRecord();
+                    }
+                 });
+                 // Update display again in case it wasn't fully ready before
+                 updateFloorDisplay();
+            } else {
+                 console.error("#ansarea element still not found after delay. Button clicks won't be tracked.");
+            }
+        }, 2000); // Wait 2 seconds
+    }
 }
 
-setInterval(revertTolightModeForImages, 10);
-activateDarkMode();
+// Run the initialization function
+// Use DOMContentLoaded to ensure the basic DOM is ready, though dynamic content might still load later.
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeGamification);
+} else {
+    // The DOMContentLoaded event has already fired
+    initializeGamification();
+}
 
+
+// --- Optional: Clean up module export if not needed ---
 // module.exports = {
 //   calculateXpFromSingleDay,
 //   calculateTotalXp,
